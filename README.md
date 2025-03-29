@@ -1,3 +1,3 @@
-![Build Status](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?event=push)
+![Test Status](https://github.com/OpenRunic/config/actions/workflows/on-push.yml/badge.svg)
 
 ### Configurator Library for GO
