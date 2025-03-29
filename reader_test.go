@@ -3,7 +3,7 @@ package config_test
 import "github.com/OpenRunic/config"
 
 // sample key and value for test
-const READER_TEST_KEY = "test"
+const READER_TEST_KEY = "test_field"
 const READER_TEST_VALUE = "tvalue"
 
 // configure test reader

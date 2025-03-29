@@ -9,7 +9,7 @@ import (
 
 // testing environment config reader
 func TestEnvReader(t *testing.T) {
-	os.Setenv("APP_TEST_NAME", READER_TEST_VALUE)
+	os.Setenv("APP_TEST_FIELD", READER_TEST_VALUE)
 
 	var data map[string]any
 	_, err := ParseTestReader(
