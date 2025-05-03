@@ -7,17 +7,17 @@ import (
 )
 
 // Full list of default configuration readers available
-var AVAILABLE_READERS = []string{
-	READER_FLAG,
-	READER_JSON,
-	READER_ENV,
+var Readers = []string{
+	ReaderFlag,
+	ReaderJSON,
+	ReaderEnv,
 }
 
 // Configuration management struct
 type Config struct {
 	Options *Options
 	Values  map[string]any
-	readers map[string]ConfigReader
+	readers map[string]Reader
 	fields  []*Field
 }
 
@@ -30,12 +30,12 @@ func (c *Config) Add(field *Field) {
 }
 
 // Add new configuration reader instance
-func (c *Config) AddReader(reader ConfigReader) {
+func (c *Config) AddReader(reader Reader) {
 	c.readers[reader.Configurator()] = reader
 }
 
 // Read the stored configuration reader
-func (c *Config) Get(name string) ConfigReader {
+func (c *Config) Get(name string) Reader {
 	r, ok := c.readers[name]
 	if ok {
 		return r
@@ -96,7 +96,7 @@ func New(opts *Options, cbs ...WithConfigCallback) (*Config, error) {
 	config := &Config{
 		Options: opts,
 		Values:  make(map[string]any),
-		readers: make(map[string]ConfigReader),
+		readers: make(map[string]Reader),
 		fields:  make([]*Field, 0),
 	}
 
@@ -110,22 +110,34 @@ func New(opts *Options, cbs ...WithConfigCallback) (*Config, error) {
 	return config, nil
 }
 
-// Create instance of configurations using default settings
+// Default creates instance of configurations
+// using default settings and option to add configs
 func Default(data any, cbs ...WithConfigCallback) (*Config, error) {
-	final_cbs := []WithConfigCallback{
+	return DefaultWithOpts(data, nil, cbs...)
+}
+
+// DefaultWithOpts creates instance of configurations
+// using default settings with support to add config and options
+func DefaultWithOpts(data any, ocbs []WithOptionCallback, cbs ...WithConfigCallback) (*Config, error) {
+	finalCbs := []WithConfigCallback{
 		Register(NewFlagReader()),
 		Register(NewEnvReader()),
 		Register(NewJSONReader()),
 	}
 	if len(cbs) > 0 {
-		final_cbs = append(final_cbs, cbs...)
+		finalCbs = append(finalCbs, cbs...)
+	}
+
+	finalOcbs := []WithOptionCallback{
+		WithPriority(Readers...),
+	}
+	if len(ocbs) > 0 {
+		finalOcbs = append(finalOcbs, ocbs...)
 	}
 
 	conf, err := New(
-		NewOptions(
-			WithPriority(AVAILABLE_READERS...),
-		),
-		final_cbs...,
+		NewOptions(finalOcbs...),
+		finalCbs...,
 	)
 	if err != nil {
 		return nil, err
@@ -135,7 +147,7 @@ func Default(data any, cbs ...WithConfigCallback) (*Config, error) {
 }
 
 // Callback to register new reader instance
-func Register(reader ConfigReader) WithConfigCallback {
+func Register(reader Reader) WithConfigCallback {
 	return func(c *Config) error {
 		c.AddReader(reader)
 		return nil

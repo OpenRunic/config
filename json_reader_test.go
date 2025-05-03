@@ -10,8 +10,26 @@ import (
 
 // testing json config reader
 func TestJsonReader(t *testing.T) {
+	var data map[string]any
+	_, err := ParseTestReader(
+		config.ReaderJSON,
+		config.NewJSONReader(),
+		&data,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	v, ok := data[ReaderTestKey]
+	if !ok || v != ReaderTestValue {
+		t.Errorf("expected '%s' but got '%v'", ReaderTestValue, v)
+	}
+}
+
+// testing json config reader io
+func TestJsonReaderIO(t *testing.T) {
 	byteValue, err := json.Marshal(map[string]any{
-		READER_TEST_KEY: READER_TEST_VALUE,
+		ReaderTestKey: ReaderTestValue,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -19,7 +37,7 @@ func TestJsonReader(t *testing.T) {
 
 	var data map[string]any
 	_, err = ParseTestReader(
-		config.READER_JSON,
+		config.ReaderJSON,
 		config.NewJSONReaderIO(bytes.NewReader(byteValue)),
 		&data,
 	)
@@ -27,8 +45,8 @@ func TestJsonReader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	v, ok := data[READER_TEST_KEY]
-	if !ok || v != READER_TEST_VALUE {
-		t.Errorf("expected '%s' but got '%v'", READER_TEST_VALUE, v)
+	v, ok := data[ReaderTestKey]
+	if !ok || v != ReaderTestValue {
+		t.Errorf("expected '%s' but got '%v'", ReaderTestValue, v)
 	}
 }

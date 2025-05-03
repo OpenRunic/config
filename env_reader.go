@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-const READER_ENV = "env"
+const ReaderEnv = "env"
 
 // Configuration Reader for Environment Variables
 type EnvReader struct {
@@ -13,7 +13,7 @@ type EnvReader struct {
 }
 
 func (r EnvReader) Configurator() string {
-	return READER_ENV
+	return ReaderEnv
 }
 
 func (r EnvReader) Get(opts *Options, field *Field) (any, bool) {

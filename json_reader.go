@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-const READER_JSON = "json"
+const ReaderJSON = "json"
 
 // Configuration Reader for JSON Data/File
 type JSONReader struct {
@@ -16,15 +16,15 @@ type JSONReader struct {
 }
 
 func (r *JSONReader) Configurator() string {
-	return READER_JSON
+	return ReaderJSON
 }
 
 func (r *JSONReader) ConfigExtension() string {
 	return "json"
 }
 
-func (r *JSONReader) Parse(opts *Options, fields []*Field) error {
-	byteValue, err := r.ResolveBytes(opts, r.path, r.reader)
+func (r *JSONReader) Parse(opts *Options, _ []*Field) error {
+	byteValue, err := ResolveBytes(r, opts, r.path, r.reader)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (r *JSONReader) Parse(opts *Options, fields []*Field) error {
 	return nil
 }
 
-func (r *JSONReader) Get(opts *Options, field *Field) (any, bool) {
+func (r *JSONReader) Get(_ *Options, field *Field) (any, bool) {
 	if r.data == nil {
 		return nil, false
 	}

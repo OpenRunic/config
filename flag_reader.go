@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-const READER_FLAG = "flag"
+const ReaderFlag = "flag"
 
 // Configuration Reader for Flags(Commandline) inputs
 type FlagReader struct {
@@ -14,7 +14,7 @@ type FlagReader struct {
 }
 
 func (r *FlagReader) Configurator() string {
-	return READER_FLAG
+	return ReaderFlag
 }
 
 func (r *FlagReader) Parse(_ *Options, fields []*Field) error {
@@ -44,7 +44,7 @@ func (r *FlagReader) Parse(_ *Options, fields []*Field) error {
 	return nil
 }
 
-func (r *FlagReader) Get(opts *Options, field *Field) (any, bool) {
+func (r *FlagReader) Get(_ *Options, field *Field) (any, bool) {
 	val, ok := r.flags[field.Name]
 
 	if ok && val != nil {

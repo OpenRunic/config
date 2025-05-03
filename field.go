@@ -58,7 +58,8 @@ func (f *Field) AddAlias(a string) *Field {
 func NewField[T any](name string, value T, usage string) (*Field, error) {
 	isNull := false
 	isList := false
-	kind := reflect.String
+
+	var kind reflect.Kind
 	tp := reflect.ValueOf(value)
 	if tp.Kind() == reflect.Ptr {
 		if !tp.Elem().IsValid() {

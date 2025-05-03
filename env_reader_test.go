@@ -9,11 +9,11 @@ import (
 
 // testing environment config reader
 func TestEnvReader(t *testing.T) {
-	os.Setenv("APP_TEST_FIELD", READER_TEST_VALUE)
+	os.Setenv("APP_TEST_FIELD", ReaderTestValue)
 
 	var data map[string]any
 	_, err := ParseTestReader(
-		config.READER_ENV,
+		config.ReaderEnv,
 		config.NewEnvReader(),
 		&data,
 	)
@@ -21,8 +21,8 @@ func TestEnvReader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	v, ok := data[READER_TEST_KEY]
-	if !ok || v != READER_TEST_VALUE {
-		t.Errorf("expected '%s' but got '%s'", READER_TEST_VALUE, v)
+	v, ok := data[ReaderTestKey]
+	if !ok || v != ReaderTestValue {
+		t.Errorf("expected '%s' but got '%s'", ReaderTestValue, v)
 	}
 }
