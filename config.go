@@ -4,44 +4,30 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
-)
 
-// Full list of default configuration readers available
-var Readers = []string{
-	ReaderFlag,
-	ReaderJSON,
-	ReaderEnv,
-}
+	"github.com/OpenRunic/config/options"
+	"github.com/OpenRunic/config/reader"
+)
 
 // Configuration management struct
 type Config struct {
-	Options *Options
+	Options *options.Options
 	Values  map[string]any
-	readers map[string]Reader
-	fields  []*Field
+	readers []reader.Reader
+	fields  []*reader.Field
 }
 
 // Callback type for configuration setup
 type WithConfigCallback func(*Config) error
 
 // Add new field for config read
-func (c *Config) Add(field *Field) {
+func (c *Config) Add(field *reader.Field) {
 	c.fields = append(c.fields, field)
 }
 
 // Add new configuration reader instance
-func (c *Config) AddReader(reader Reader) {
-	c.readers[reader.Configurator()] = reader
-}
-
-// Read the stored configuration reader
-func (c *Config) Get(name string) Reader {
-	r, ok := c.readers[name]
-	if ok {
-		return r
-	}
-
-	return nil
+func (c *Config) AddReader(r reader.Reader) {
+	c.readers = append(c.readers, r)
 }
 
 // Parse the configurations based of registered fields
@@ -55,24 +41,20 @@ func (c *Config) Parse(data any) error {
 
 	values := make(map[string]any)
 
-	for idx, priority := range c.Options.Priority {
-		reader, ok := c.readers[priority]
+	for idx, r := range c.readers {
+		err := r.Parse(c.Options, c.fields)
+		if err != nil {
+			return err
+		}
 
-		if ok {
-			err := reader.Parse(c.Options, c.fields)
-			if err != nil {
-				return err
+		for _, field := range c.fields {
+			if idx == 0 && !field.Null {
+				values[field.Name] = field.Value
 			}
 
-			for _, field := range c.fields {
-				if idx == 0 && !field.Null {
-					values[field.Name] = field.Value
-				}
-
-				val, ok := reader.Get(c.Options, field)
-				if ok {
-					values[field.Name] = val
-				}
+			val, ok := r.Get(c.Options, field)
+			if ok {
+				values[field.Name] = val
 			}
 		}
 	}
@@ -92,64 +74,43 @@ func (c *Config) Parse(data any) error {
 }
 
 // Create new instance of configurations with support for setup callbacks
-func New(opts *Options, cbs ...WithConfigCallback) (*Config, error) {
-	config := &Config{
+func New(opts *options.Options, cbs ...WithConfigCallback) (*Config, error) {
+	cnf := &Config{
 		Options: opts,
 		Values:  make(map[string]any),
-		readers: make(map[string]Reader),
-		fields:  make([]*Field, 0),
+		readers: make([]reader.Reader, 0),
+		fields:  make([]*reader.Field, 0),
 	}
 
 	for _, cb := range cbs {
-		err := cb(config)
+		err := cb(cnf)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return config, nil
+	return cnf, nil
 }
 
-// Default creates instance of configurations
-// using default settings and option to add configs
-func Default(data any, cbs ...WithConfigCallback) (*Config, error) {
-	return DefaultWithOpts(data, nil, cbs...)
-}
-
-// DefaultWithOpts creates instance of configurations
-// using default settings with support to add config and options
-func DefaultWithOpts(data any, ocbs []WithOptionCallback, cbs ...WithConfigCallback) (*Config, error) {
-	finalCbs := []WithConfigCallback{
-		Register(NewFlagReader()),
-		Register(NewEnvReader()),
-		Register(NewJSONReader()),
-	}
-	if len(cbs) > 0 {
-		finalCbs = append(finalCbs, cbs...)
-	}
-
-	finalOcbs := []WithOptionCallback{
-		WithPriority(Readers...),
-	}
-	if len(ocbs) > 0 {
-		finalOcbs = append(finalOcbs, ocbs...)
-	}
-
-	conf, err := New(
-		NewOptions(finalOcbs...),
-		finalCbs...,
-	)
+// Create instance and parse configs
+func Parse(opts *options.Options, data any, cbs ...WithConfigCallback) (*Config, error) {
+	cnf, err := New(opts, cbs...)
 	if err != nil {
 		return nil, err
 	}
 
-	return conf, conf.Parse(&data)
+	err = cnf.Parse(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return cnf, nil
 }
 
 // Callback to register new reader instance
-func Register(reader Reader) WithConfigCallback {
+func Register(r reader.Reader) WithConfigCallback {
 	return func(c *Config) error {
-		c.AddReader(reader)
+		c.AddReader(r)
 		return nil
 	}
 }
@@ -157,7 +118,7 @@ func Register(reader Reader) WithConfigCallback {
 // Callback shortcut to register new field
 func Add(name string, value any, usage string) WithConfigCallback {
 	return func(c *Config) error {
-		field, err := NewField(name, value, usage)
+		field, err := reader.NewField(name, value, usage)
 		if err != nil {
 			return err
 		}

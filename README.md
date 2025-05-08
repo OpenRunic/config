@@ -2,16 +2,29 @@
 
 ## Configurator Library for GO
 
-This library allow you to load configurations from flags, environment, json file and much more through custom interface implementation.
+This library allow you to load configurations from flags, env, json, yaml and much more through custom interface implementation.
 
 ```
-type ConfigData struct {
+import (
+  ...
+
+	"github.com/OpenRunic/config"
+	"github.com/OpenRunic/config/options"
+	"github.com/OpenRunic/config/env"
+	"github.com/OpenRunic/config/json"
+)
+
+type ServerConfig struct {
   Host string
   Port int
 }
 
-var configs ConfigData
-_, err := config.Default(&configs,
+var sc ServerConfig
+_, err := config.Parse(
+  options.New(),
+  &sc,
+  config.Register(json.New()),
+  config.Register(env.New()),
   config.Add("host", "localhost", "Server hostname"),
   config.Add("port", 3000, "Server port"),
 )
@@ -20,6 +33,6 @@ if err != nil {
   log.Fatal(err)
 }
 
-println("Server Host: ", configs.Host)
-println("Server Port: ", configs.Port)
+println("Server Host: ", sc.Host)
+println("Server Port: ", sc.Port)
 ```

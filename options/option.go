@@ -1,18 +1,17 @@
-package config
+package options
 
 // Options struct for configurator
 type Options struct {
 	Strict   bool
 	Prefix   string
 	Filename string
-	Priority []string
 }
 
 // Callback type for options setup
 type WithOptionCallback func(*Options)
 
 // Make new options instance using callbacks
-func NewOptions(cbs ...WithOptionCallback) *Options {
+func New(cbs ...WithOptionCallback) *Options {
 	opts := &Options{
 		Strict:   false,
 		Prefix:   "app_",
@@ -30,13 +29,6 @@ func NewOptions(cbs ...WithOptionCallback) *Options {
 func WithPrefix(prefix string) WithOptionCallback {
 	return func(opts *Options) {
 		opts.Prefix = prefix
-	}
-}
-
-// Set priority of config readers
-func WithPriority(priorities ...string) WithOptionCallback {
-	return func(opts *Options) {
-		opts.Priority = priorities
 	}
 }
 

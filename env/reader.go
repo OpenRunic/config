@@ -1,22 +1,25 @@
-package config
+package env
 
 import (
 	"os"
 	"strings"
+
+	"github.com/OpenRunic/config/options"
+	"github.com/OpenRunic/config/reader"
 )
 
 const ReaderEnv = "env"
 
 // Configuration Reader for Environment Variables
-type EnvReader struct {
-	BaseReader
+type Reader struct {
+	reader.BaseReader
 }
 
-func (r EnvReader) Configurator() string {
+func (r Reader) Configurator() string {
 	return ReaderEnv
 }
 
-func (r EnvReader) Get(opts *Options, field *Field) (any, bool) {
+func (r Reader) Get(opts *options.Options, field *reader.Field) (any, bool) {
 	for _, al := range field.Alias {
 		key := strings.ToUpper(al)
 		if len(opts.Prefix) > 0 {
@@ -26,16 +29,16 @@ func (r EnvReader) Get(opts *Options, field *Field) (any, bool) {
 		value, exists := os.LookupEnv(key)
 		if exists {
 			if field.List {
-				return CastSliceValue(value, field.Kind)
+				return reader.CastSliceValue(value, field.Kind)
 			}
 
-			return CastValue(value, field.Kind)
+			return reader.CastValue(value, field.Kind)
 		}
 	}
 
 	return nil, false
 }
 
-func NewEnvReader() *EnvReader {
-	return &EnvReader{}
+func New() *Reader {
+	return &Reader{}
 }

@@ -3,21 +3,24 @@ package config
 import (
 	"flag"
 	"reflect"
+
+	"github.com/OpenRunic/config/options"
+	"github.com/OpenRunic/config/reader"
 )
 
 const ReaderFlag = "flag"
 
 // Configuration Reader for Flags(Commandline) inputs
-type FlagReader struct {
-	BaseReader
+type Reader struct {
+	reader.BaseReader
 	flags map[string]any
 }
 
-func (r *FlagReader) Configurator() string {
+func (r *Reader) Configurator() string {
 	return ReaderFlag
 }
 
-func (r *FlagReader) Parse(_ *Options, fields []*Field) error {
+func (r *Reader) Parse(_ *options.Options, fields []*reader.Field) error {
 	if !flag.Parsed() {
 		r.flags = make(map[string]any)
 
@@ -44,12 +47,12 @@ func (r *FlagReader) Parse(_ *Options, fields []*Field) error {
 	return nil
 }
 
-func (r *FlagReader) Get(_ *Options, field *Field) (any, bool) {
+func (r *Reader) Get(_ *options.Options, field *reader.Field) (any, bool) {
 	val, ok := r.flags[field.Name]
 
 	if ok && val != nil {
 		if field.List {
-			return CastSliceValue(*val.(*string), field.Kind)
+			return reader.CastSliceValue(*val.(*string), field.Kind)
 		}
 
 		switch field.Kind {
@@ -78,6 +81,6 @@ func (r *FlagReader) Get(_ *Options, field *Field) (any, bool) {
 	return nil, false
 }
 
-func NewFlagReader() *FlagReader {
-	return &FlagReader{}
+func New() *Reader {
+	return &Reader{}
 }
