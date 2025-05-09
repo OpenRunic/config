@@ -15,13 +15,35 @@ func AnyToInt(val any) (int64, bool) {
 	}
 
 	switch val.(type) {
-	case int, int32:
+	case int, int32, int64, *int, *int32, *int64:
 		return val.(int64), true
 	default:
-		v := fmt.Sprintf("%v", val)
-		ival, err := strconv.ParseInt(v, 10, 64)
+		ival, err := strconv.ParseInt(
+			fmt.Sprintf("%v", val),
+			10, 64,
+		)
 		if err != nil {
 			return 0, false
+		}
+		return ival, true
+	}
+}
+
+// typecast from any to float
+func AnyToFloat(val any) (float64, bool) {
+	if val == nil {
+		return 0.0, false
+	}
+
+	switch val.(type) {
+	case float32, float64, *float32, *float64:
+		return val.(float64), true
+	default:
+		ival, err := strconv.ParseFloat(
+			fmt.Sprintf("%v", val), 64,
+		)
+		if err != nil {
+			return 0.0, false
 		}
 		return ival, true
 	}
@@ -36,27 +58,19 @@ func AnyToBool(val any) (bool, bool) {
 	switch tp := val.(type) {
 	case bool:
 		return tp, true
-	case string:
-		return tp == "true", true
-	case int:
-		return tp != 0, true
 	case *bool:
 		if tp == nil {
 			return false, false
 		}
 		return *tp, true
-	case *string:
-		if tp == nil {
-			return false, false
-		}
-		return *tp == "true", true
-	case *int:
-		if tp == nil {
-			return false, false
-		}
-		return *tp != 0, true
 	default:
-		return false, false
+		ival, err := strconv.ParseBool(
+			fmt.Sprintf("%v", val),
+		)
+		if err != nil {
+			return false, false
+		}
+		return ival, true
 	}
 }
 
@@ -75,16 +89,37 @@ func CastValue(value any, tp reflect.Kind) (any, bool) {
 			return "", false
 		}
 		return fmt.Sprintf("%v", value), true
-	case reflect.Int:
-		if value == nil {
-			return 0, false
-		}
-		return AnyToInt(value)
 	case reflect.Bool:
 		if value == nil {
 			return false, false
 		}
 		return AnyToBool(value)
+	case reflect.Int, reflect.Int32, reflect.Int64:
+		if value == nil {
+			return 0, false
+		}
+
+		v, ok := AnyToInt(value)
+
+		switch tp {
+		case reflect.Int:
+			return int(v), ok
+		case reflect.Int32:
+			return int32(v), ok
+		default:
+			return v, ok
+		}
+	case reflect.Float32, reflect.Float64:
+		if value == nil {
+			return 0, false
+		}
+
+		v, ok := AnyToFloat(value)
+		if tp == reflect.Float32 {
+			return float32(v), ok
+		}
+
+		return v, ok
 	}
 
 	return nil, false
