@@ -116,9 +116,9 @@ func Register(r reader.Reader) WithConfigCallback {
 }
 
 // Callback shortcut to register new field
-func Add(name string, value any, usage string) WithConfigCallback {
+func Add[T any](name string, value T, usage string) WithConfigCallback {
 	return func(c *Config) error {
-		field, err := reader.NewField(name, value, usage)
+		field, err := reader.NewField[T](name, value, usage)
 		if err != nil {
 			return err
 		}

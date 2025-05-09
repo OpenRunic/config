@@ -15,7 +15,7 @@ func AnyToInt(val any) (int64, bool) {
 	}
 
 	switch val.(type) {
-	case int, int32, int64, *int, *int32, *int64:
+	case int64, *int64:
 		return val.(int64), true
 	default:
 		ival, err := strconv.ParseInt(
@@ -36,7 +36,7 @@ func AnyToFloat(val any) (float64, bool) {
 	}
 
 	switch val.(type) {
-	case float32, float64, *float32, *float64:
+	case float64, *float64:
 		return val.(float64), true
 	default:
 		ival, err := strconv.ParseFloat(
@@ -98,7 +98,6 @@ func CastValue(value any, tp reflect.Kind) (any, bool) {
 		if value == nil {
 			return 0, false
 		}
-
 		v, ok := AnyToInt(value)
 
 		switch tp {
